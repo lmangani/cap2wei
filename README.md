@@ -8,9 +8,10 @@ The scripts were hacked together quite too fast and barely tested, use at your o
 
 
 ### Scripts:
-- ptmf2pcap.pl: Convert binary PTMF to .PCAP and clear-text .LOG
-- cap2wei.pl: Convert text PTMF (?) to .PCAP and clear-text .LOG
-
+```
+- ptmf2pcap.pl  : Convert binary PTMF to .PCAP and clear-text .LOG
+- cap2wei.pl    : Convert text PTMF (?) to .PCAP and clear-text .LOG
+```
 ### Requirements:
 
 - perl
