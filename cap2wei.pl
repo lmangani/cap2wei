@@ -104,7 +104,7 @@ while(my $line = <$fh>) {
 		$siplog =~ s/(([0-9a-f][0-9a-f])+)/pack('H*', $1)/ie;
 
 		#if ( -T "$siplog" ) {
-			my $filelog =  $tmp.'/'.$target.'.siplog';
+			my $filelog =  $tmp.'/'.$target.'.log';
 			#my $filelog = '/tmp/siplog.log';
 			open(my $fh2, '>>', $filelog) or die "Could not open log file '$filename' $!";
 			print $fh2 "$ts$from_ip:$from_port -> $to_ip:$to_port\n$siplog";
@@ -143,13 +143,13 @@ print "Done!\n";
 # Mergecap of all fragments (needs timestamp!!!)
 	print "Merging pcaps....";
 	system("mergecap -w $target.pcap $tmp/*.pcap");
-	system("mv $tmp/$target.siplog ./");
+	system("mv $tmp/$target.log ./");
 # Clean up
 	system("rm -rf $tmp");
 	print "Done!\n";
 
 print "Original: $filename \n";
 print "PCAP:     $target.pcap \n";
-print "TEXT-Log: $target.siplog \n\n";
+print "TEXT-Log: $target.log \n\n";
 
 exit 0;
