@@ -5,6 +5,7 @@ Convert HUAWEI TMF (SIP?) text traces to PCAP / PLAIN TEXT
 
 ### Disclaimer
 This ugly script was hacked together quite fast and barely tested, use at your own risk!
+Supports only text input format at this time, extracted using official vendor tools, etc.
 
 
 ## Requires:
