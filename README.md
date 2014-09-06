@@ -1,10 +1,10 @@
 cap2wei
 =======
 
-Convert HUAWEI TMF (SIP?) text traces to PCAP / PLAIN TEXT
+Simple scripts to convert HUAWEI TMF binary/text traces to PCAP / PLAIN LOGs
 
 ### Disclaimer
-This ugly script was hacked together quite fast and barely tested, use at your own risk!
+The scripts were hacked together quite fast and barely tested, use at your own risk!
 Supports only text input format at this time, extracted using official vendor tools, etc.
 
 
@@ -14,18 +14,24 @@ Supports only text input format at this time, extracted using official vendor to
 - text2pcap (wireshark)
 - bit-twist (http://bittwist.sourceforge.net )
 
-## Usage:
+## Usage for BINARY PTMF:
 ```
-./cap2wei.pl {filename}
+./ptmf2pcap.pl {filename.ptmf}
 ```
 
-## Outputs Files:
+## Usage for TEXT PTMF:
+```
+./cap2wei.pl {filename.txt}
+```
+
+
+### Output Files:
 ```
 PCAP: {filename}.pcap
 LOG:  {filename}.log
 ```
 
-## Header Formats:
+### Header Formats:
 ```
  	[No.                   ] INT
  	[TimeStamp             ] %Y-%m-%d %H:%M:%S.
