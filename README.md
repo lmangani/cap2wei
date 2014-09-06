@@ -1,4 +1,4 @@
-Cap2Wei ("kept-away")
+cap2wei ("kept-away")
 =======
 
 Simple, brutal scripts to convert HUAWEI TMF binary/text traces to PCAP / PLAIN LOGs
