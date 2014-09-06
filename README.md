@@ -2,6 +2,7 @@ cap2wei ("kept-away")
 =======
 
 Simple, brutal scripts to convert HUAWEI TMF binary/text traces to PCAP / PLAIN LOGs
+Extraction/Injection of original IPs,Ports and Timestampts supported.
 
 ### Disclaimer
 The scripts were hacked together quite too fast and barely tested, use at your own risk!
