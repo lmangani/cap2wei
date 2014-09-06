@@ -2,7 +2,7 @@
 # 
 # App: Cap2Wei
 # Version: 0.1b (06/09/2014)
-# Description: Script to convert HUAWEI's TMF text trace to standard PCAP (for SIP)
+# Description: Script to convert HUAWEI's TMF text trace to standard PCAP + Clear LOG
 # Hacked together while re-watching "Boris 3" by L. Mangani & C.Mangani 
 
 # ==========================================================================
@@ -29,7 +29,7 @@ use strict;
 use warnings;
 use IPC::Cmd qw[can_run run];
 
-print "Cap2Wei: Convert HUAWEI IMS Mystery text traces to PCAP \n\n";
+print "Cap2Wei: Convert HUAWEI IMS Mystery text traces to PCAP + Clear LOG\n\n";
 
 my $full_path = can_run('text2pcap') or warn 'text2pcap is not installed! Please install wireshark \n';
 $full_path = can_run('bittwiste') or warn 'bittwiste is not installed! Please install from http://bittwist.sourceforge.net \n';
@@ -149,7 +149,7 @@ print "Done!\n";
 	print "Done!\n";
 
 print "Original: $filename \n";
-print "PCAP:     $target.pcap \n";
+print "PCAP    : $target.pcap \n";
 print "TEXT-Log: $target.log \n\n";
 
 exit 0;
