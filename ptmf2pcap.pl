@@ -46,14 +46,18 @@ my $filename = $ARGV[0];
 if (! -e $filename || @ARGV == 0 ) { 
 	print "oops, source file not found!\n"; usage(); 
 	print "Usage: \n";
-	print "       ./ptmf2pcap.pl {filename}.ptmf \n\n";
+	print "       ./ptmf2pcap.pl {filename.ptmf} \n\n";
 	exit();
 }
 
 my $target = $ARGV[0];
 $target =~ s{\.[^.]+$}{};
 my $tmp = "/tmp/$target-tmp";
-system("mkdir $tmp");
+
+if ( ! -d "$tmp" ) {
+	system("mkdir $tmp");
+}
+
 system("rm -rf ./$target-ptmf.log");
 
 print "Parsing & Converting records....";
@@ -71,22 +75,27 @@ my $from_ip = '';
 my $to_ip = '';
 my $from_port = 0;
 my $to_port = 0;
+my $ts;
+my $command;
+my ($t_ms,$t_ts);
 
 foreach my $val (@values) {
     $count++;
     if ($count >= 1 ) {   
-    print "## RECORD $count\n";
+    # print "## RECORD $count\n";
     # Header
     my $head =  substr $val, 1,193;
 	if ( $head ) {
-		# Parse Header (just for reversing format - hacky and endian-less for now)
+		# Parse Header (reversed, work in progress!)
 		$hdr = unpack "A*", $head;
-		print "HDR: $hdr \n";
+		# print "HDR: $hdr \n";
+		
 		# Parse SRC, DST IPs
 		$from_ip =  substr "$hdr", 107,8; #114,121
 		$from_ip = join '.', unpack "C*", pack "H*", $from_ip;
 		$to_ip =  substr "$hdr", 145,8;
 		$to_ip = join '.', unpack "C*", pack "H*", $to_ip;
+		
 		# Parse SRC, DST PORTs
 		$from_port =  substr "$hdr", 141,2;
 		$from_port = "$from_port" .  substr "$hdr", 139,2;
@@ -94,20 +103,26 @@ foreach my $val (@values) {
 		$to_port = "$to_port" .  substr "$hdr", 177,2;
 		$from_port = hex($from_port);
 		$to_port = hex($to_port);
+
+		# Milliseconds
+		$t_ms =  substr "$hdr", 63,8;
+		$t_ms = hex($t_ms);
+		#print "MSEC: $t_ms \n";
+
 		# Print Results
-		print "FROM: "; 
-		print "$from_ip:$from_port"; 
-		print " -> TO: ";
-		print "$to_ip:$to_port";
-		print " \n";
+		# print "FROM: "; 
+		# print "$from_ip:$from_port"; 
+		# print " -> TO: ";
+		# print "$to_ip:$to_port";
+		# print " \n";
 	}
 
     # Hex Message, stripped
     $val =  substr $val, 194;
     my $log = "$val";
 
-    $log =~ s/(([0-9a-f][0-9a-f])+)/pack('H*', $1)/ie;
-    if ( $log =~ /[[:alpha:]]/ ) { 
+      $log =~ s/(([0-9a-f][0-9a-f])+)/pack('H*', $1)/ie;
+      if ( $log =~ /[[:alpha:]]/ ) { 
 	# HEX Packet
 	# $val = unpack "H*", $log;
 	$val =~ s/[^ ]{2}(?=[^\n ])/$& /g;
@@ -120,7 +135,7 @@ foreach my $val (@values) {
 			print $fh $val;
 			close $fh;
 
-		my $command = "text2pcap -u $from_port,$to_port -i 17 $tmp/pt$count.txt $tmp/pt$count.pcap";
+		$command = "text2pcap -q -u $from_port,$to_port -i 17 $tmp/pt$count.txt $tmp/pt$count.pcap";
 		system($command);
 
 		if ($from_port > 1) {
@@ -139,12 +154,20 @@ foreach my $val (@values) {
 			close $fh2;
 		#}
 
+      }
+    } else {
+	# Initial Header w/ date
+	# print "$val";	
+        $ts =  substr $val, -32, 32;
+        $ts =~ s/(([0-9a-f][0-9a-f])+)/pack('H*', $1)/ie;
+	#print "\nREPORT DATE: $ts\n";
+	#my $time = Time::Piece->strptime( $ts, "%Y-%m-%d %H:%M");
+	#print "\nTS: $time\n";
     }
-  }
 
 }
 		# Merge pcaps
-		my $command = "mergecap -w $target-ptmf.pcap $tmp/pt*.pcap";
+		$command = "mergecap -w $target-ptmf.pcap $tmp/pt*.pcap";
 		system($command);
 		# Cleanup
 		#$command = "rm -rf $tmp";
@@ -152,7 +175,7 @@ foreach my $val (@values) {
 
 
 
-print "Done!\n";
+print "Done!\n\n";
 
 print "Original: $filename \n";
 print "PCAP:     $target-ptmf.pcap \n";
