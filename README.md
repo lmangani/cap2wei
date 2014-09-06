@@ -7,8 +7,11 @@ Simple scripts to convert HUAWEI TMF binary/text traces to PCAP / PLAIN LOGs
 The scripts were hacked together quite fast and barely tested, use at your own risk!
 Supports only text input format at this time, extracted using official vendor tools, etc.
 
+## Scripts:
+- ptmf2pcap.pl: Convert binary PTMF to .PCAP and clear-text .LOG
+- cap2wei.pl: Convert text PTMF (?) to .PCAP and clear-text .LOG
 
-## Requires:
+### Requirements:
 
 - perl
 - text2pcap (wireshark)
