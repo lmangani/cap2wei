@@ -29,7 +29,7 @@
 #
 # TO-DO: 
 #       - Complete Timestamps from tmf header (currently just H:M:S.ms)
-#       - Find out what else is there
+#       - Find out what else is there (protocol type, etc)
 
 
 use strict;
