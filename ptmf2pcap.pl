@@ -67,7 +67,7 @@ my $hexdata = `cat $filename`;
 
 my $hexdata_pack = unpack "H*", $hexdata;
 
-my @values = split('6d736730', $hexdata_pack);
+my @values = split('6d736730', $hexdata_pack); # Msg0
 
 my $count = -1;
 my $hdr;
@@ -99,20 +99,18 @@ foreach my $val (@values) {
 		# Parse SRC, DST PORTs
 		$from_port =  substr "$hdr", 141,2;
 		$from_port = "$from_port" .  substr "$hdr", 139,2;
+		$from_port = hex($from_port);
 		$to_port =  substr "$hdr", 179,2;
 		$to_port = "$to_port" .  substr "$hdr", 177,2;
-		$from_port = hex($from_port);
 		$to_port = hex($to_port);
 
-		# Time
+		# Time chunk
                 $t_tm =  substr "$hdr", 55,6;
                 $t_tm = join ':', unpack "C*", pack "H*", $t_tm;
-                # Milliseconds
+                # Milliseconds chunk
                 $t_ms =  substr "$hdr", 63,8;
                 $t_ms = hex($t_ms);
-                #print "MSEC: $t_ms \n";
-
-                # Build %h:%m:%s.
+                # Assemble %H:%M:%S.
                 $t_ts = $t_tm.".".$t_ms;
 
 	}
@@ -124,17 +122,16 @@ foreach my $val (@values) {
       $log =~ s/(([0-9a-f][0-9a-f])+)/pack('H*', $1)/ie;
       if ( $log =~ /[[:alpha:]]/ ) { 
 	# HEX Packet
-	# $val = unpack "H*", $log;
+	# Fix HEX spacing
 	$val =~ s/[^ ]{2}(?=[^\n ])/$& /g;
-    	#$val =  substr $val, 56;
+    	# Add row header
     	$val =~ s/^/00000 /;
 
     	# Inkject TS extracted from header
         $val = $t_ts."\n".$val;
 
-	#$val = $hdr.$val;
     	# Write to temp file and send to text2cap
-			my $filename = $tmp.'/pt'.$count.'.txt';
+		my $filename = $tmp.'/pt'.$count.'.txt';
 			open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
 			print $fh $val;
 			close $fh;
@@ -160,13 +157,10 @@ foreach my $val (@values) {
 
       }
     } else {
-	# Initial Header w/ date
-	# print "$val";	
+	# Initial Header w/ report date and other useless (?) info
         $ts =  substr $val, -32, 32;
         $ts =~ s/(([0-9a-f][0-9a-f])+)/pack('H*', $1)/ie;
 	#print "\nREPORT DATE: $ts\n";
-	#my $time = Time::Piece->strptime( $ts, "%Y-%m-%d %H:%M");
-	#print "\nTS: $time\n";
     }
 
 }
@@ -174,8 +168,8 @@ foreach my $val (@values) {
 		$command = "mergecap -w $target-ptmf.pcap $tmp/pt*.pcap";
 		system($command);
 		# Cleanup
-		#$command = "rm -rf $tmp";
-		#system($command);
+		$command = "rm -rf $tmp";
+		system($command);
 
 
 
