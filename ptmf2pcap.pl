@@ -28,8 +28,7 @@
 # ALPHA STATUS & UNTESTED! USE AT YOUR OWN RISK!
 #
 # TO-DO: 
-#       - Complete Timestamps from tmf header (currently just H:M:S.ms)
-#       - Find out what else is there (protocol type, etc)
+#       - Find out what else is the header (protocol type, etc)
 
 
 use strict;
@@ -104,6 +103,12 @@ foreach my $val (@values) {
 		$to_port = "$to_port" .  substr "$hdr", 177,2;
 		$to_port = hex($to_port);
 
+		# Year
+                $t_yr =  substr "$hdr", 47,4;
+                $t_yr =  hex($t_yr);
+                # Date
+                $t_dt =  substr "$hdr", 51,4;
+                $t_dt = join '-', unpack "C*", pack "H*", $t_dt;
 		# Time chunk
                 $t_tm =  substr "$hdr", 55,6;
                 $t_tm = join ':', unpack "C*", pack "H*", $t_tm;
@@ -112,6 +117,9 @@ foreach my $val (@values) {
                 $t_ms = hex($t_ms);
                 # Assemble %H:%M:%S.
                 $t_ts = $t_tm.".".$t_ms;
+                # Assemble %Y-%m-%d %H:%M:%S.
+                $t_ts = $t_yr."-".$t_dt." ".$t_ts;
+
 
 	}
 
@@ -136,7 +144,7 @@ foreach my $val (@values) {
 			print $fh $val;
 			close $fh;
 
-		$command = "text2pcap -q -t '%H:%M:%S.' -u $from_port,$to_port -i 17 $tmp/pt$count.txt $tmp/pt$count.pcap";
+		$command = "text2pcap -q -t '%Y-%m-%d %H:%M:%S.' -u $from_port,$to_port -i 17 $tmp/pt$count.txt $tmp/pt$count.pcap";
 		system($command);
 
 		if ($from_port > 1) {
