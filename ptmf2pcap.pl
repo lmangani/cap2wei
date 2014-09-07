@@ -104,17 +104,17 @@ foreach my $val (@values) {
 		$from_port = hex($from_port);
 		$to_port = hex($to_port);
 
-		# Milliseconds
-		$t_ms =  substr "$hdr", 63,8;
-		$t_ms = hex($t_ms);
-		#print "MSEC: $t_ms \n";
+		# Time
+                $t_tm =  substr "$hdr", 55,6;
+                $t_tm = join ':', unpack "C*", pack "H*", $t_tm;
+                # Milliseconds
+                $t_ms =  substr "$hdr", 63,8;
+                $t_ms = hex($t_ms);
+                #print "MSEC: $t_ms \n";
 
-		# Print Results
-		# print "FROM: "; 
-		# print "$from_ip:$from_port"; 
-		# print " -> TO: ";
-		# print "$to_ip:$to_port";
-		# print " \n";
+                # Build %h:%m:%s.
+                $t_ts = $t_tm.".".$t_ms;
+
 	}
 
     # Hex Message, stripped
@@ -128,6 +128,10 @@ foreach my $val (@values) {
 	$val =~ s/[^ ]{2}(?=[^\n ])/$& /g;
     	#$val =  substr $val, 56;
     	$val =~ s/^/00000 /;
+
+    	# Inkject TS extracted from header
+        $val = $t_ts."\n".$val;
+
 	#$val = $hdr.$val;
     	# Write to temp file and send to text2cap
 			my $filename = $tmp.'/pt'.$count.'.txt';
@@ -135,7 +139,7 @@ foreach my $val (@values) {
 			print $fh $val;
 			close $fh;
 
-		$command = "text2pcap -q -u $from_port,$to_port -i 17 $tmp/pt$count.txt $tmp/pt$count.pcap";
+		$command = "text2pcap -q -t '%H:%M:%S.' -u $from_port,$to_port -i 17 $tmp/pt$count.txt $tmp/pt$count.pcap";
 		system($command);
 
 		if ($from_port > 1) {
