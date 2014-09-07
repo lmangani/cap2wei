@@ -28,7 +28,7 @@
 # ALPHA STATUS & UNTESTED! USE AT YOUR OWN RISK!
 #
 # TO-DO: 
-#       - Add Timestamps from tmf header
+#       - Complete Timestamps from tmf header (currently just H:M:S.ms)
 #       - Find out what else is there
 
 
