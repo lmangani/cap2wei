@@ -76,7 +76,8 @@ my $from_port = 0;
 my $to_port = 0;
 my $ts;
 my $command;
-my ($t_ms,$t_ts);
+my $t_ms; my $t_ts;
+my $t_dt; my $t_yr; my $t_tm;
 
 foreach my $val (@values) {
     $count++;
