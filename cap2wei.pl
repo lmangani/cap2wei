@@ -32,6 +32,7 @@ use IPC::Cmd qw[can_run run];
 print "Cap2Wei: Convert HUAWEI IMS Mystery text traces to PCAP + Clear LOG\n\n";
 
 my $full_path = can_run('text2pcap') or warn 'text2pcap is not installed! Please install wireshark \n';
+$full_path = can_run('mergecap') or warn 'mergecap is not installed! Please install wireshark \n';
 $full_path = can_run('bittwiste') or warn 'bittwiste is not installed! Please install from http://bittwist.sourceforge.net \n';
 
 my $filename = $ARGV[0];
