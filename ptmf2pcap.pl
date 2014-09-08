@@ -81,7 +81,7 @@ my $ts;
 my $command;
 my $t_ms; my $t_ts;
 my $t_dt; my $t_yr; my $t_tm;
-my $fragment=0;
+my $fragments=0;
 
 foreach my $val (@values) {
     $count++;
