@@ -34,6 +34,8 @@
 use strict;
 use warnings;
 use IPC::Cmd qw[can_run run];
+use Encode;
+use Encode::Guess;
 
 print "ptmf2pcap: Convert HUAWEI PTMF Binary to PCAP/PLAINTEXT \n\n";
 
@@ -79,6 +81,7 @@ my $ts;
 my $command;
 my $t_ms; my $t_ts;
 my $t_dt; my $t_yr; my $t_tm;
+my $fragment=0;
 
 foreach my $val (@values) {
     $count++;
@@ -130,7 +133,11 @@ foreach my $val (@values) {
     my $log = "$val";
 
       $log =~ s/(([0-9a-f][0-9a-f])+)/pack('H*', $1)/ie;
-      if ( $log =~ /[[:alpha:]]/ ) { 
+      my $decoder = guess_encoding($log);
+      # print "DECODER: $decoder \n";
+      # Check if printable, otherwise skip packet
+      if ( $decoder =~ /Encode::XS=SCALAR/ ) {
+      # if ( $log =~ /[[:alpha:]]/ ) { 
 	# HEX Packet
 	# Fix HEX spacing
 	$val =~ s/[^ ]{2}(?=[^\n ])/$& /g;
@@ -145,6 +152,7 @@ foreach my $val (@values) {
 			open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
 			print $fh $val;
 			close $fh;
+			$fragments++;
 
 		$command = "text2pcap -q -t '%Y-%m-%d %H:%M:%S.' -u $from_port,$to_port -i 17 $tmp/pt$count.txt $tmp/pt$count.pcap";
 		system($command);
@@ -164,6 +172,22 @@ foreach my $val (@values) {
 			#print $fh2 $log;
 			close $fh2;
 		#}
+		
+		# Avoid too many files open, mergedown
+		if ( $fragments > 200 ) {
+                        $fragments = 0;
+                       
+                        #print "\n Too many fragments! Interim merge-down...";
+                        # Merge pcaps
+                        $command = "mergecap -w $tmp/merge-tmp-ptmf.pcap $tmp/pt*.pcap";
+                        system($command);
+                        # Cleanup
+                        $command = "rm -rf $tmp/pr*.pcap";
+                        system($command);
+                        $command = "mv $tmp/merge-tmp-ptmf.pcap $tmp/pt$count.pcap";
+                        system($command);
+                }
+
 
       }
     } else {
