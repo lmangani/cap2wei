@@ -168,7 +168,8 @@ foreach my $val (@values) {
 			my $filelog =  './'.$target.'-ptmf.log';
 			#my $filelog = '/tmp/siplog.log';
 			open(my $fh2, '>>', $filelog) or die "Could not open log file '$filename' $!";
-			print $fh2 "$from_ip:$from_port -> $to_ip:$to_port\n$log\n";
+			print $fh2 "$from_ip:$from_port -> $to_ip:$to_port \n";
+			print $fh2 "$log\n";
 			#print $fh2 $log;
 			close $fh2;
 		#}
