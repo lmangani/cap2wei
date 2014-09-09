@@ -70,9 +70,9 @@ while(my $line = <$fh>) {
 	} elsif ($line =~ /Message Type/) {
 		# MS Hack to order 100 Trying in sequence w/ Invites
 		$line =  substr $line, 25;
-		if ($line =~ /100 T/ ) { 
-		  $ts =~ s/.$/9/;
-		}
+		# if ($line =~ /100 T/ ) { 
+		#   $ts =~ s/.$/9/;
+		# }
 	} elsif ($line =~ /Source Add/) {
 		$line =  substr $line, 25;
 		$line =~ s/\R//g;
