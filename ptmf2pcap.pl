@@ -152,7 +152,7 @@ foreach my $val (@values) {
 		$check =~ s/\x{0001}//g;
 		$check =~ tr/\x{0001}-\x{001f}//d;
 		if ($check eq "" ) {
-		    print "[CHOP]";
+		    # print "[CHOP]";
 		    $val =  substr $val, 2;
 		} 
 
