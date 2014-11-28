@@ -1,12 +1,16 @@
 cap2wei ("kept-away")
 =======
 
-Simple, brutal scripts to convert HUAWEI TMF binary/text traces to PCAP / PLAIN LOGs
+**PTMF** is a format utilized by *HUAWEI* SIP/IMS voice equipment, completely undocumented.
+
+**ptmf2pcap** is a simple, ugly & brutal script which attempts to convert HUAWEI TMF binary/text traces to PCAP / PLAIN LOGs based on reverse engineering of the protocol and leaves much to be desired.
 
 Extraction/Injection of original IP:PORT and TimeStamp to PCAP is mostly supported.
 
 ### Disclaimer
 The scripts were hacked together quite too fast and barely tested, use at your own risk!
+
+If you wish to contribute further PTMF samples to improve the script, contact the author.
 
 
 ### Scripts:
@@ -37,7 +41,7 @@ PCAP: {filename}.pcap
 LOG:  {filename}.log
 ```
 
-### Text Format: Headers
+### Text Format: Headers (work in progress)
 ```
  	[No.                   ] INT
  	[TimeStamp             ] %Y-%m-%d %H:%M:%S.
