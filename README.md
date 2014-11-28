@@ -2,7 +2,7 @@ cap2wei ("kept-away")
 =======
 
 
-**ptmf2pcap** *(binary)* and **cap2wei** *(text)* are a pair a simple, ugly & brutal script which attempt decoding and converting of *HUAWEI TMF* binary/text traces to *PCAP / PLAIN TEXT* based on reverse engineering of the protocol alone, and leaves much to be desired. Extraction of SIP Payload and Injection of original IP:PORT and TimeStamp from TMF header to PCAP is mostly supported. Internal logs and transactions are dumped in readable form in the generated LOGS.
+**ptmf2pcap** *(binary)* and **cap2wei** *(text)* are a pair a simple, ugly & brutal script which attempt decoding and converting of *HUAWEI TMF* binary/text traces to *PCAP / PLAIN TEXT* based on reverse engineering of the format, and leaves much to be desired. Extraction of SIP Payload and Injection of original IP:PORT and TimeStamp from TMF header to PCAP is mostly supported. Internal logs and transactions are dumped in readable form in the generated LOGS.
 
 **PTMF** is a headache-inducing tracing format utilized by chinese manufactor *HUAWEI* in their SIP/IMS voice equipment, completely undocumented and not currently supported by any external application. 
 
