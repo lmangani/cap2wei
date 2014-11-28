@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # 
 # App: ptmf2pcap
-# Version: 0.1b (07/09/2014)
+# Version: 0.2b (28/11/2014)
 # Author: L. Mangani, C. Mangani
 # Description: Script to convert HUAWEI PTMF binary trace to PCAP & Clear TEXT
 #
@@ -37,7 +37,7 @@ use IPC::Cmd qw[can_run run];
 use Encode;
 use Encode::Guess;
 
-print "ptmf2pcap: Convert HUAWEI PTMF Binary to PCAP/PLAINTEXT \n\n";
+print "ptmf2pcap: Convert HUAWEI PTMF Binary to PCAP/PLAINTEXT (alpha) \n\n";
 
 my $full_path = can_run('text2pcap') or warn 'text2pcap is not installed! Please install wireshark \n';
 $full_path = can_run('mergecap') or warn 'mergecap is not installed! Please install wireshark \n';
@@ -45,8 +45,8 @@ $full_path = can_run('bittwiste') or warn 'bittwiste is not installed! Please in
 
 my $filename = $ARGV[0];
 
-if (! -e $filename || @ARGV == 0 ) { 
-	print "oops, source file not found!\n"; usage(); 
+if (@ARGV == 0 || ! $filename =~ /\.ptmf$/i || ! -e $filename  ) { 
+	print "Error: PTMF file not found or invalid!\n"; 
 	print "Usage: \n";
 	print "       ./ptmf2pcap.pl {filename.ptmf} \n\n";
 	exit();
@@ -54,18 +54,24 @@ if (! -e $filename || @ARGV == 0 ) {
 
 my $target = $ARGV[0];
 $target =~ s{\.[^.]+$}{};
+
+# Sanitize and Shrink target
+$target =~ tr/a-zA-Z0-9//dc;
+if (length($target) > 20) { $target =~ s/.{20}\K.*//s; } 
+
 my $tmp = "/tmp/$target-tmp";
 
 if ( ! -d "$tmp" ) {
 	system("mkdir $tmp");
+	if ( ! -d "$tmp" ) { print "Failed to create tmp \n";  exit(); }
 }
 
 system("rm -rf ./$target-ptmf.log");
 
-print "Parsing & Converting records....";
+print "Parsing & Converting records.... \n";
 
 #my $hexdata = `cat $filename | xxd -p | tr -d '\n'`;
-my $hexdata = `cat $filename`;
+my $hexdata = `cat "$filename"`;
 
 my $hexdata_pack = unpack "H*", $hexdata;
 
@@ -82,11 +88,18 @@ my $command;
 my $t_ms; my $t_ts;
 my $t_dt; my $t_yr; my $t_tm;
 my $fragments=0;
+my $valen=0;
+my $fcount=0;
+my $proto=17;
+my $viaproto='UDP';
 
 foreach my $val (@values) {
     $count++;
-    if ($count >= 1 ) {   
+    $valen = length($val);
+    if ($count >= 1 && $valen > 194 ) {
+
     # print "## RECORD $count\n";
+    # print "## LEN $len\n";
     # Header
     my $head =  substr $val, 1,193;
 	if ( $head ) {
@@ -128,33 +141,56 @@ foreach my $val (@values) {
 
 	}
 
-    # Hex Message, stripped
-    $val =  substr $val, 194;
-    my $log = "$val";
+    if ($valen > 200 ) {
+	    # Hex Message, stripped
+	    $val =  substr $val, 194;
 
-      $log =~ s/(([0-9a-f][0-9a-f])+)/pack('H*', $1)/ie;
-      my $decoder = guess_encoding($log);
-      # print "DECODER: $decoder \n";
-      # Check if printable, otherwise skip packet
-      if ( $decoder =~ /Encode::XS=SCALAR/ ) {
-      # if ( $log =~ /[[:alpha:]]/ ) { 
-	# HEX Packet
-	# Fix HEX spacing
-	$val =~ s/[^ ]{2}(?=[^\n ])/$& /g;
-    	# Add row header
-    	$val =~ s/^/00000 /;
+		# Check & Strip first pair
+		my $check =  substr $val, 0, 2;
+	        $check =~ s/(([0-9a-f][0-9a-f])+)/pack('H*', $1)/ie;
+		# $check =~ s/[^[:ascii:]]//g;
+		$check =~ s/\x{0001}//g;
+		$check =~ tr/\x{0001}-\x{001f}//d;
+		if ($check eq "" ) {
+		    print "[CHOP]";
+		    $val =  substr $val, 2;
+		} 
 
-    	# Inkject TS extracted from header
-        $val = $t_ts."\n".$val;
+	    my $log = "$val";
+	    $log =~ s/(([0-9a-f][0-9a-f])+)/pack('H*', $1)/ie;
 
-    	# Write to temp file and send to text2cap
+		# Remove non-ASCII
+		# $log =~ s/[\x80-\xFF]//g;
+
+            ($viaproto) = $log =~ /Via: SIP\/2\.0\/(.*) /g;
+	    if ($viaproto = "UDP") { $proto = 17; }
+	    elsif ($viaproto = "TCP") { $proto = 6; }
+
+	      my $decoder = guess_encoding($log);
+	      # print "DECODER: $decoder \n";
+	      # Check if printable, otherwise skip packet
+	      if ( $decoder =~ /Encode::XS=SCALAR/ ) {
+	      # if ( $log =~ /[[:alpha:]]/ ) { 
+		# HEX Packet
+		# Fix HEX spacing
+		$val =~ s/[^ ]{2}(?=[^\n ])/$& /g;
+	    	# Add row header
+	    	$val =~ s/^/00000 /;
+
+	    	# Inkject TS extracted from header
+	        $val = $t_ts."\n".$val;
+
+                print "*";
+		##
+		#
+	    	# Write to temp file and send to text2cap
 		my $filename = $tmp.'/pt'.$count.'.txt';
 			open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
 			print $fh $val;
 			close $fh;
 			$fragments++;
 
-		$command = "text2pcap -q -t '%Y-%m-%d %H:%M:%S.' -u $from_port,$to_port -i 17 $tmp/pt$count.txt $tmp/pt$count.pcap";
+		$command = "text2pcap -q -t '%Y-%m-%d %H:%M:%S.' -u $from_port,$to_port -i $proto $tmp/pt$count.txt $tmp/pt$count.pcap";
 		system($command);
 
 		if ($from_port > 1) {
@@ -178,21 +214,38 @@ foreach my $val (@values) {
 		if ( $fragments > 200 ) {
                         $fragments = 0;
                        
-                        #print "\n Too many fragments! Interim merge-down...";
+                        # print "\n Too many fragments! Interim merge-down...";
+			print "[M]";
                         # Merge pcaps
                         $command = "mergecap -w $tmp/merge-tmp-ptmf.pcap $tmp/pt*.pcap";
                         system($command);
                         # Cleanup
-                        $command = "rm -rf $tmp/pr*.pcap";
+                        $command = "rm -rf $tmp/pt*.pcap";
                         system($command);
-                        $command = "mv $tmp/merge-tmp-ptmf.pcap $tmp/pt$count.pcap";
+
+			#$fcount = system("ls -afq $tmp | wc -l");
+			#print "\n $fcount files after \n";
+
+                        system($command);
+                        $command = "mv $tmp/merge-tmp-ptmf.pcap $tmp/pt-merged-$count.pcap";
                         system($command);
                 }
+	#
+	##
+
+     } else {
+	        $val = $t_ts."\n"."NULL\n\n";
+                print ".";
+
+     }
 
 
+#
       }
+
     } else {
 	# Initial Header w/ report date and other useless (?) info
+        print "["; 
         $ts =  substr $val, -32, 32;
         $ts =~ s/(([0-9a-f][0-9a-f])+)/pack('H*', $1)/ie;
 	#print "\nREPORT DATE: $ts\n";
@@ -206,12 +259,12 @@ foreach my $val (@values) {
 		$command = "rm -rf $tmp";
 		system($command);
 
-
+print "] \n\n";
 
 print "Done!\n\n";
 
 print "Original: $filename \n";
 print "PCAP:     $target-ptmf.pcap \n";
-print "TEXT-Log: $target-ptmf.siplog \n\n";
+print "TEXT-Log: $target-ptmf.log \n\n";
 
 exit 0;
