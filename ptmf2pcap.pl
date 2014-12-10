@@ -163,8 +163,8 @@ foreach my $val (@values) {
 		# $log =~ s/[\x80-\xFF]//g;
 
             ($viaproto) = $log =~ /Via: SIP\/2\.0\/(.*) /g;
-	    if ($viaproto = "UDP") { $proto = 17; }
-	    elsif ($viaproto = "TCP") { $proto = 6; }
+	    if ($viaproto == "UDP") { $proto = 17; }
+	    elsif ($viaproto == "TCP") { $proto = 6; }
 
 	      my $decoder = guess_encoding($log);
 	      # print "DECODER: $decoder \n";
