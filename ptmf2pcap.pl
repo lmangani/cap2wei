@@ -162,9 +162,9 @@ foreach my $val (@values) {
 		# Remove non-ASCII
 		# $log =~ s/[\x80-\xFF]//g;
 
-            ($viaproto) = $log =~ /Via: SIP\/2\.0\/(.*) /g;
-	    if ($viaproto == "UDP") { $proto = 17; }
-	    elsif ($viaproto == "TCP") { $proto = 6; }
+            $viaproto = $log =~ /Via: SIP\/2\.0\/(.*) /g;
+	    if ($viaproto eq "UDP") { $proto = 17; }
+	    elsif ($viaproto eq "TCP") { $proto = 6; }
 
 	      my $decoder = guess_encoding($log);
 	      # print "DECODER: $decoder \n";
